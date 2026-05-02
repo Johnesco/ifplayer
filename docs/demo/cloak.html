@@ -375,11 +375,12 @@ summary.turn-extras-summary:hover { background: var(--hover); }
 
 ul.assertions { margin: 0; padding-left: 4px; list-style: none; }
 ul.assertions li {
-  padding: 5px 0;
-  font-family: var(--mono);  /* asserts quote literal substrings, keep mono */
-  font-size: 13px;
+  padding: 6px 0;
+  font-size: 13.5px;
+  font-family: var(--ui-font);  /* labels read as prose, not literal text */
   position: relative;
-  padding-left: 20px;
+  padding-left: 22px;
+  line-height: 1.45;
 }
 ul.assertions li.pass::before {
   content: "✓";
@@ -387,6 +388,7 @@ ul.assertions li.pass::before {
   left: 0;
   color: var(--pass);
   font-weight: 700;
+  font-size: 14px;
 }
 ul.assertions li.fail::before {
   content: "✗";
@@ -394,12 +396,23 @@ ul.assertions li.fail::before {
   left: 0;
   color: var(--fail);
   font-weight: 700;
+  font-size: 14px;
+}
+ul.assertions li.pass .label { color: var(--pass); font-weight: 600; }
+ul.assertions li.fail .label { color: var(--fail); font-weight: 600; }
+ul.assertions li .pattern {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: 8px;
+  font-weight: 400;
 }
 ul.assertions li .detail {
   display: block;
   color: var(--fail);
   margin-top: 2px;
   font-size: 12px;
+  font-family: var(--mono);
 }
 
 /* Inline match highlight: clicking "show" on an assertion highlights
@@ -500,7 +513,7 @@ li.fail.matches-active ~ pre.turn-response .hl.hl-active,
 }
 .metadata dt { color: var(--muted); }
 .metadata dd { margin: 0; }
-</style></head><body><h1>ifPlayer · cloak-walkthrough</h1><div class="subtitle">generated 2026-05-01 19:43:23 · 1 test · 55ms</div><div class="summary"><div class="item"><span class="num pass-num">1</span><span class="label">passed</span></div><div class="item"><span class="num fail-num">0</span><span class="label">failed</span></div><div class="item"><span class="num">1</span><span class="label">walkthroughs</span></div><div class="item"><span class="num">5</span><span class="label">turns</span></div><div class="item"><span class="num">9/9</span><span class="label">assertions</span></div></div><h2>Games under test</h2><div class="games"><div class="game-row"><div class="game-name">cloak-inform7.ulx</div><div class="game-paths"><span class="relpath">../../i7/cloak-inform7/cloak-inform7.ulx</span><span class="seed">seed: 42</span><span class="abspath">resolved: C:/code/text-games/i7/cloak-inform7/cloak-inform7.ulx</span></div></div></div><h2>Tests</h2><div class="tests"><details class="test" data-status="pass"><summary class="test-summary"><span class="glyph pass">✓</span><span class="test-name">cloak-walkthrough</span><span class="test-summary-meta">5 turns · <span class="outcome-walkthrough">WALKTHROUGH</span> · score 2 · 9/9 ✓ · 55ms</span></summary><div class="test-body"><ul class="transcript"><li class="opening"><pre class="opening-text">
+</style></head><body><h1>ifPlayer · cloak-walkthrough</h1><div class="subtitle">generated 2026-05-01 23:55:28 · 1 test · 48ms</div><div class="summary"><div class="item"><span class="num pass-num">1</span><span class="label">passed</span></div><div class="item"><span class="num fail-num">0</span><span class="label">failed</span></div><div class="item"><span class="num">1</span><span class="label">walkthroughs</span></div><div class="item"><span class="num">5</span><span class="label">turns</span></div><div class="item"><span class="num">9/9</span><span class="label">assertions</span></div></div><h2>Games under test</h2><div class="games"><div class="game-row"><div class="game-name">cloak-inform7.ulx</div><div class="game-paths"><span class="relpath">../../i7/cloak-inform7/cloak-inform7.ulx</span><span class="seed">seed: 42</span><span class="abspath">resolved: C:/code/text-games/i7/cloak-inform7/cloak-inform7.ulx</span></div></div></div><h2>Tests</h2><div class="tests"><details class="test" data-status="pass"><summary class="test-summary"><span class="glyph pass">✓</span><span class="test-name">cloak-walkthrough</span><span class="test-summary-meta">5 turns · <span class="outcome-walkthrough">WALKTHROUGH</span> · score 2 · 9/9 ✓ · 48ms</span></summary><div class="test-body"><ul class="transcript"><li class="opening"><pre class="opening-text">
 
 
 
@@ -517,17 +530,17 @@ You are standing in a spacious hall, splendidly decorated in red and gold, with 
 </pre></li></ul><ul class="transcript"><li class="turn"><details class="turn-detail" data-status="pass"><summary class="turn-row"><span class="turn-tcount">T:1</span><span class="turn-cmd">&gt; west</span><span class="turn-room"><span class="room-fp" title="fingerprint: 9768d98d4640">Cloakroom</span></span><span class="turn-score"></span><span class="turn-delta"></span><span class="turn-outcome "></span><span class="turn-asserts"><span class="pass">✓ 2/2</span></span></summary><div class="turn-body"><pre class="turn-response">
 <strong class="room-title"><span class="hl" data-asserts="0">Cloakroom</span></strong>
 The walls of this small room were clearly once lined with <span class="hl" data-asserts="1">hooks</span>, though now only one remains. The exit is a door to the east.
-</pre><details class="turn-extras"><summary class="turn-extras-summary">2 checks ✓  ·  3ms</summary><div class="turn-extras-body"><h4>Checks</h4><ul class="assertions"><li class="pass">? Cloakroom<button type="button" class="match-toggle" data-assertion-idx="0">show</button></li><li class="pass">? hooks<button type="button" class="match-toggle" data-assertion-idx="1">show</button></li></ul></div></details></div></details></li><li class="turn"><details class="turn-detail" data-status="pass"><summary class="turn-row"><span class="turn-tcount">T:2</span><span class="turn-cmd">&gt; hang cloak on hook</span><span class="turn-room"><span class="room-fp" title="fingerprint: 9768d98d4640">Cloakroom</span></span><span class="turn-score">score 1</span><span class="turn-delta">+1</span><span class="turn-outcome "></span><span class="turn-asserts"><span class="pass">✓ 2/2</span></span></summary><div class="turn-body"><pre class="turn-response">(first taking it off)
+</pre><details class="turn-extras"><summary class="turn-extras-summary">2 checks ✓  ·  3ms</summary><div class="turn-extras-body"><h4>Checks</h4><ul class="assertions"><li class="pass"><span class="label">? Cloakroom</span><button type="button" class="match-toggle" data-assertion-idx="0">show</button></li><li class="pass"><span class="label">? hooks</span><button type="button" class="match-toggle" data-assertion-idx="1">show</button></li></ul></div></details></div></details></li><li class="turn"><details class="turn-detail" data-status="pass"><summary class="turn-row"><span class="turn-tcount">T:2</span><span class="turn-cmd">&gt; hang cloak on hook</span><span class="turn-room"><span class="room-fp" title="fingerprint: 9768d98d4640">Cloakroom</span></span><span class="turn-score">score 1</span><span class="turn-delta">+1</span><span class="turn-outcome "></span><span class="turn-asserts"><span class="pass">✓ 2/2</span></span></summary><div class="turn-body"><pre class="turn-response">(first taking it off)
 You put the <span class="hl" data-asserts="0">velvet cloak</span> on the small brass hook.
 
 [Your <span class="hl" data-asserts="1">score has just gone up</span> by one point.]
-</pre><details class="turn-extras"><summary class="turn-extras-summary">2 checks ✓  ·  4ms</summary><div class="turn-extras-body"><h4>Checks</h4><ul class="assertions"><li class="pass">? velvet cloak<button type="button" class="match-toggle" data-assertion-idx="0">show</button></li><li class="pass">? /score has (just )?gone up/<button type="button" class="match-toggle" data-assertion-idx="1">show</button></li></ul></div></details></div></details></li><li class="turn"><details class="turn-detail" data-status="pass"><summary class="turn-row"><span class="turn-tcount">T:3</span><span class="turn-cmd">&gt; east</span><span class="turn-room"><span class="room-fp" title="fingerprint: 85d53a9386c3">Foyer of the Opera House</span></span><span class="turn-score">score 1</span><span class="turn-delta"></span><span class="turn-outcome "></span><span class="turn-asserts"><span class="pass">✓ 1/1</span></span></summary><div class="turn-body"><pre class="turn-response">
+</pre><details class="turn-extras"><summary class="turn-extras-summary">2 checks ✓  ·  4ms</summary><div class="turn-extras-body"><h4>Checks</h4><ul class="assertions"><li class="pass"><span class="label">? velvet cloak</span><button type="button" class="match-toggle" data-assertion-idx="0">show</button></li><li class="pass"><span class="label">? /score has (just )?gone up/</span><button type="button" class="match-toggle" data-assertion-idx="1">show</button></li></ul></div></details></div></details></li><li class="turn"><details class="turn-detail" data-status="pass"><summary class="turn-row"><span class="turn-tcount">T:3</span><span class="turn-cmd">&gt; east</span><span class="turn-room"><span class="room-fp" title="fingerprint: 85d53a9386c3">Foyer of the Opera House</span></span><span class="turn-score">score 1</span><span class="turn-delta"></span><span class="turn-outcome "></span><span class="turn-asserts"><span class="pass">✓ 1/1</span></span></summary><div class="turn-body"><pre class="turn-response">
 <strong class="room-title"><span class="hl" data-asserts="0">Foyer</span></strong><strong class="room-title"> of the Opera House</strong>
 You are standing in a spacious hall, splendidly decorated in red and gold, with glittering chandeliers overhead. The entrance from the street is to the north, and there are doorways south and west.
-</pre><details class="turn-extras"><summary class="turn-extras-summary">1 check ✓  ·  4ms</summary><div class="turn-extras-body"><h4>Checks</h4><ul class="assertions"><li class="pass">? Foyer<button type="button" class="match-toggle" data-assertion-idx="0">show</button></li></ul></div></details></div></details></li><li class="turn"><details class="turn-detail" data-status="pass"><summary class="turn-row"><span class="turn-tcount">T:4</span><span class="turn-cmd">&gt; south</span><span class="turn-room"><span class="room-fp" title="fingerprint: 32b1ffe2073a">Foyer Bar</span></span><span class="turn-score">score 1</span><span class="turn-delta"></span><span class="turn-outcome "></span><span class="turn-asserts"><span class="pass">✓ 2/2</span></span></summary><div class="turn-body"><pre class="turn-response">
+</pre><details class="turn-extras"><summary class="turn-extras-summary">1 check ✓  ·  4ms</summary><div class="turn-extras-body"><h4>Checks</h4><ul class="assertions"><li class="pass"><span class="label">? Foyer</span><button type="button" class="match-toggle" data-assertion-idx="0">show</button></li></ul></div></details></div></details></li><li class="turn"><details class="turn-detail" data-status="pass"><summary class="turn-row"><span class="turn-tcount">T:4</span><span class="turn-cmd">&gt; south</span><span class="turn-room"><span class="room-fp" title="fingerprint: 32b1ffe2073a">Foyer Bar</span></span><span class="turn-score">score 1</span><span class="turn-delta"></span><span class="turn-outcome "></span><span class="turn-asserts"><span class="pass">✓ 2/2</span></span></summary><div class="turn-body"><pre class="turn-response">
 <strong class="room-title"><span class="hl" data-asserts="0">Foyer Bar</span></strong>
 The bar, much rougher than you&#x27;d have guessed after the opulence of the foyer to the north, is completely empty. There seems to be some sort of <span class="hl" data-asserts="1">message scrawled</span> in the sawdust on the floor.
-</pre><details class="turn-extras"><summary class="turn-extras-summary">2 checks ✓  ·  3ms</summary><div class="turn-extras-body"><h4>Checks</h4><ul class="assertions"><li class="pass">? Foyer Bar<button type="button" class="match-toggle" data-assertion-idx="0">show</button></li><li class="pass">? message scrawled<button type="button" class="match-toggle" data-assertion-idx="1">show</button></li></ul></div></details></div></details></li><li class="turn"><details class="turn-detail" data-status="pass"><summary class="turn-row"><span class="turn-tcount">T:5</span><span class="turn-cmd">&gt; read message</span><span class="turn-room"><span class="room-fp" title="fingerprint: 32b1ffe2073a">Foyer Bar</span></span><span class="turn-score">score 2</span><span class="turn-delta"></span><span class="turn-outcome win">WIN</span><span class="turn-asserts"><span class="pass">✓ 2/2</span></span></summary><div class="turn-body"><pre class="turn-response">The message, neatly marked in the sawdust, reads...
+</pre><details class="turn-extras"><summary class="turn-extras-summary">2 checks ✓  ·  3ms</summary><div class="turn-extras-body"><h4>Checks</h4><ul class="assertions"><li class="pass"><span class="label">? Foyer Bar</span><button type="button" class="match-toggle" data-assertion-idx="0">show</button></li><li class="pass"><span class="label">? message scrawled</span><button type="button" class="match-toggle" data-assertion-idx="1">show</button></li></ul></div></details></div></details></li><li class="turn"><details class="turn-detail" data-status="pass"><summary class="turn-row"><span class="turn-tcount">T:5</span><span class="turn-cmd">&gt; read message</span><span class="turn-room"><span class="room-fp" title="fingerprint: 32b1ffe2073a">Foyer Bar</span></span><span class="turn-score">score 2</span><span class="turn-delta"></span><span class="turn-outcome win">WIN</span><span class="turn-asserts"><span class="pass">✓ 2/2</span></span></summary><div class="turn-body"><pre class="turn-response">The message, neatly marked in the sawdust, reads...
 
 
 
@@ -537,7 +550,7 @@ The bar, much rougher than you&#x27;d have guessed after the opulence of the foy
 In that game you <span class="hl" data-asserts="1">scored 2 out of a possible 2</span>, in 5 turns.
 
 
-Would you like to RESTART, RESTORE a saved game, QUIT or UNDO the last command?</pre><details class="turn-extras"><summary class="turn-extras-summary">2 checks ✓  ·  <span style="color:var(--warn);">drift</span>  ·  2ms</summary><div class="turn-extras-body"><h4>Checks</h4><ul class="assertions"><li class="pass">? *** The End ***<button type="button" class="match-toggle" data-assertion-idx="0">show</button></li><li class="pass">? scored 2 out of a possible 2<button type="button" class="match-toggle" data-assertion-idx="1">show</button></li></ul><h4>Drift <span style="font-weight:400;color:var(--muted);">— recorded vs observed, word level</span></h4><div class="drift-legend"><span><span class="swatch del">removed</span>in recorded snapshot only</span><span><span class="swatch ins">added</span>in observed output only</span><span style="color:var(--muted);">unchanged words shown in grey</span></div><div class="drift-diff"><span class="equal">The message, neatly marked in the sawdust, reads... *** The End *** In that game you scored 2 out of a possible 2, in 5 turns.</span> <span class="ins">Would you like to RESTART, RESTORE a saved game, QUIT or UNDO the last command?</span></div></div></details></div></details></li></ul></div></details></div><script>
+Would you like to RESTART, RESTORE a saved game, QUIT or UNDO the last command?</pre><details class="turn-extras"><summary class="turn-extras-summary">2 checks ✓  ·  <span style="color:var(--warn);">drift</span>  ·  2ms</summary><div class="turn-extras-body"><h4>Checks</h4><ul class="assertions"><li class="pass"><span class="label">? *** The End ***</span><button type="button" class="match-toggle" data-assertion-idx="0">show</button></li><li class="pass"><span class="label">? scored 2 out of a possible 2</span><button type="button" class="match-toggle" data-assertion-idx="1">show</button></li></ul><h4>Drift <span style="font-weight:400;color:var(--muted);">— recorded vs observed, word level</span></h4><div class="drift-legend"><span><span class="swatch del">removed</span>in recorded snapshot only</span><span><span class="swatch ins">added</span>in observed output only</span><span style="color:var(--muted);">unchanged words shown in grey</span></div><div class="drift-diff"><span class="equal">The message, neatly marked in the sawdust, reads... *** The End *** In that game you scored 2 out of a possible 2, in 5 turns.</span> <span class="ins">Would you like to RESTART, RESTORE a saved game, QUIT or UNDO the last command?</span></div></div></details></div></details></li></ul></div></details></div><script>
 document.addEventListener('click', function (e) {
   var btn = e.target.closest && e.target.closest('.match-toggle');
   if (!btn) return;

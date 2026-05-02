@@ -51,6 +51,7 @@ class Assertion:
     text: str  # substring for contains/not_contains; pattern source for regex
     raw_line: str  # exact line as written, for error display
     line_no: int
+    label: Optional[str] = None  # human-readable name from preceding `#` comment
 
 
 @dataclass
@@ -272,6 +273,11 @@ def _parse_turn_body(lines: list[str], start: int, turn: Turn) -> int:
     """Consume lines belonging to a single turn. Returns index of next-turn start."""
     i = start
     output_buffer: list[str] = []
+    # Comment lines accumulate into pending_label; they attach to the
+    # *next* assertion line, then clear. Blank lines, commands, output,
+    # markers — anything but more comments — also clear pending_label so
+    # only directly-adjacent comments label an assertion.
+    pending_label: list[str] = []
 
     while i < len(lines):
         line = lines[i]
@@ -281,26 +287,31 @@ def _parse_turn_body(lines: list[str], start: int, turn: Turn) -> int:
         if line.startswith(">"):
             break
 
-        # Comment
+        # Comment — accumulate as potential label for the next assertion
         if stripped.startswith("#"):
+            pending_label.append(stripped.lstrip("#").strip())
             i += 1
             continue
 
-        # Blank line — could be inside output block, or just spacing
+        # Blank line — could be inside output block, or just spacing.
+        # Either way it clears any pending label.
         if not stripped:
             output_buffer.append("")
+            pending_label = []
             i += 1
             continue
 
-        # Recorded output: 2+ spaces or tab indent
+        # Recorded output: 2+ spaces or tab indent — clears pending label
         if line.startswith("  ") or line.startswith("\t"):
             output_buffer.append(line.rstrip())
+            pending_label = []
             i += 1
             continue
 
-        # @  room marker
+        # @  room marker — clears pending label (label attaches to assertions only)
         room_match = _ROOM_RE.match(stripped)
         if stripped.startswith("@") and room_match:
+            pending_label = []
             if turn.room is not None:
                 raise TestFormatError(
                     "duplicate @ marker in turn", line_no=i + 1
@@ -314,9 +325,10 @@ def _parse_turn_body(lines: list[str], start: int, turn: Turn) -> int:
             i += 1
             continue
 
-        # $  score marker
+        # $  score marker — clears pending label
         score_match = _SCORE_RE.match(stripped)
         if stripped.startswith("$") and score_match:
+            pending_label = []
             if turn.score is not None:
                 raise TestFormatError(
                     "duplicate $ marker in turn", line_no=i + 1
@@ -367,30 +379,36 @@ def _parse_turn_body(lines: list[str], start: int, turn: Turn) -> int:
         # Negative assertion (must come before _POS_ASSERT — `?!` starts with `?`)
         m = _NEG_ASSERT_RE.match(stripped)
         if m:
+            label = " ".join(pending_label) if pending_label else None
             turn.assertions.append(
                 Assertion(kind="not_contains", text=m.group(1),
-                          raw_line=line, line_no=i + 1)
+                          raw_line=line, line_no=i + 1, label=label)
             )
+            pending_label = []
             i += 1
             continue
 
         # Regex assertion (must come before substring — `? /...//` starts with `? `)
         m = _REGEX_ASSERT_RE.match(stripped)
         if m:
+            label = " ".join(pending_label) if pending_label else None
             turn.assertions.append(
                 Assertion(kind="regex", text=m.group("pat"),
-                          raw_line=line, line_no=i + 1)
+                          raw_line=line, line_no=i + 1, label=label)
             )
+            pending_label = []
             i += 1
             continue
 
         # Positive substring assertion
         m = _POS_ASSERT_RE.match(stripped)
         if m:
+            label = " ".join(pending_label) if pending_label else None
             turn.assertions.append(
                 Assertion(kind="contains", text=m.group(1),
-                          raw_line=line, line_no=i + 1)
+                          raw_line=line, line_no=i + 1, label=label)
             )
+            pending_label = []
             i += 1
             continue
 
@@ -488,8 +506,13 @@ def _render_score_turn(s: Optional[ScoreMarker], t: Optional[int]) -> str:
 
 
 def _render_assertion(a: Assertion) -> str:
+    """Render an assertion line, with a leading `# label` if labelled."""
     if a.kind == "not_contains":
-        return f"?! {a.text}"
-    if a.kind == "regex":
-        return f"? /{a.text}/"
-    return f"? {a.text}"
+        body = f"?! {a.text}"
+    elif a.kind == "regex":
+        body = f"? /{a.text}/"
+    else:
+        body = f"? {a.text}"
+    if a.label:
+        return f"# {a.label}\n{body}"
+    return body

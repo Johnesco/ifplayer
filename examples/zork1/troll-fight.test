@@ -1,7 +1,7 @@
 test: zork1-troll-fight
-game: ../../i7/zork1/zork1.ulx
+game: ../../../i7/zork1/zork1.ulx
 seed: 26
-before: zork1-cellar-nav.before
+before: cellar-nav.before
 ---
 
 # After cellar-nav: player is in the Cellar with sword and lit lamp.

@@ -407,11 +407,12 @@ summary.turn-extras-summary:hover { background: var(--hover); }
 
 ul.assertions { margin: 0; padding-left: 4px; list-style: none; }
 ul.assertions li {
-  padding: 5px 0;
-  font-family: var(--mono);  /* asserts quote literal substrings, keep mono */
-  font-size: 13px;
+  padding: 6px 0;
+  font-size: 13.5px;
+  font-family: var(--ui-font);  /* labels read as prose, not literal text */
   position: relative;
-  padding-left: 20px;
+  padding-left: 22px;
+  line-height: 1.45;
 }
 ul.assertions li.pass::before {
   content: "✓";
@@ -419,6 +420,7 @@ ul.assertions li.pass::before {
   left: 0;
   color: var(--pass);
   font-weight: 700;
+  font-size: 14px;
 }
 ul.assertions li.fail::before {
   content: "✗";
@@ -426,12 +428,23 @@ ul.assertions li.fail::before {
   left: 0;
   color: var(--fail);
   font-weight: 700;
+  font-size: 14px;
+}
+ul.assertions li.pass .label { color: var(--pass); font-weight: 600; }
+ul.assertions li.fail .label { color: var(--fail); font-weight: 600; }
+ul.assertions li .pattern {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: 8px;
+  font-weight: 400;
 }
 ul.assertions li .detail {
   display: block;
   color: var(--fail);
   margin-top: 2px;
   font-size: 12px;
+  font-family: var(--mono);
 }
 
 /* Inline match highlight: clicking "show" on an assertion highlights
@@ -999,14 +1012,26 @@ def _render_turn(record: runner.TurnRecord) -> str:
 def _render_assertion(a: runner.AssertionResult, idx_in_turn: int) -> str:
     """Render one assertion as a list item.
 
-    If the assertion has matches in the observed output (positive on pass,
-    or negative on fail), include a `<button class="match-toggle">` whose
-    JS click handler toggles `.hl-active` on the matching `<span class="hl">`
-    elements inside this turn's response block. Radio-style: one
-    assertion's highlights visible at a time per turn.
+    Labelled assertions (preceded by a `# comment` in the .test file)
+    show the label as the primary text in green/red; the underlying
+    pattern is shown muted next to it. Unlabelled assertions fall back
+    to showing the raw assertion line as the label.
+
+    If the assertion has matches in the observed output, include a
+    `<button class="match-toggle">` whose JS toggles `.hl-active` on
+    the matching `<span class="hl">` spans inside the response above.
     """
     cls = "pass" if a.passed else "fail"
-    raw = html.escape(a.assertion.raw_line.strip())
+    label_text = a.assertion.label
+    raw = a.assertion.raw_line.strip()
+
+    if label_text:
+        primary = f'<span class="label">{html.escape(label_text)}</span>'
+        secondary = f'<span class="pattern">{html.escape(raw)}</span>'
+        body = f'{primary}{secondary}'
+    else:
+        body = f'<span class="label">{html.escape(raw)}</span>'
+
     detail_span = (
         f'<span class="detail">{html.escape(a.detail)}</span>'
         if not a.passed and a.detail else ""
@@ -1019,7 +1044,7 @@ def _render_assertion(a: runner.AssertionResult, idx_in_turn: int) -> str:
             f'data-assertion-idx="{idx_in_turn}">show</button>'
         )
 
-    return f'<li class="{cls}">{raw}{toggle}{detail_span}</li>'
+    return f'<li class="{cls}">{body}{toggle}{detail_span}</li>'
 
 
 def _format_turn_asserts(record: runner.TurnRecord) -> str:

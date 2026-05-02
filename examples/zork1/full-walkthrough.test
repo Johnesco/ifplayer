@@ -1,5 +1,5 @@
 test: zork1-full-walkthrough
-game: ../../i7/zork1/zork1.ulx
+game: ../../../i7/zork1/zork1.ulx
 seed: 26
 ---
 
