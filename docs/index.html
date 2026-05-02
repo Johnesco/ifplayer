@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ifPlayer — Inform 7 test runner</title>
+<style>
+  :root {
+    --bg: #fafafa;
+    --fg: #1a1a1a;
+    --muted: #6b6b6b;
+    --pass: #1a7f37;
+    --pass-bg: #dcffe4;
+    --line: #d8d4cb;
+    --accent: #4a3a25;
+    --hover: #f3efe8;
+    --card-bg: #2b231a;
+    --code-bg: #f1efe9;
+    --ui-font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Consolas, "Cascadia Code", monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.55 var(--ui-font);
+    padding: 32px 32px 80px;
+    max-width: 880px;
+  }
+  h1 {
+    font-size: 38px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    letter-spacing: -0.5px;
+  }
+  .tagline {
+    color: var(--muted);
+    font-size: 17px;
+    margin-bottom: 36px;
+  }
+  h2 {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--muted);
+    margin: 36px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--line);
+  }
+  p { margin: 0 0 16px; }
+  code {
+    font-family: var(--mono);
+    background: var(--code-bg);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 14px;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 12px 16px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    margin: 0 0 16px;
+  }
+  a { color: #6b3a8a; text-decoration: none; border-bottom: 1px solid transparent; }
+  a:hover { border-bottom-color: currentColor; }
+
+  ul.demo-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+  ul.demo-grid li {
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    border-left: 6px solid var(--pass);
+  }
+  ul.demo-grid a {
+    display: block;
+    padding: 18px 22px;
+    color: #fafafa;
+    border-bottom: none;
+  }
+  ul.demo-grid a:hover { filter: brightness(1.18); }
+  ul.demo-grid h3 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #fafafa;
+    letter-spacing: 0.2px;
+  }
+  ul.demo-grid .meta {
+    color: rgba(255,255,255,0.78);
+    font-size: 13.5px;
+    font-variant-numeric: tabular-nums;
+  }
+  ul.demo-grid .meta .pass { color: #6fcf97; font-weight: 600; }
+
+  .features {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 28px;
+  }
+  .features li { padding: 0; }
+  .features strong { display: block; color: var(--accent); margin-bottom: 4px; }
+  .features span { color: var(--muted); font-size: 14px; line-height: 1.5; }
+
+  .footer {
+    margin-top: 48px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  @media (max-width: 600px) {
+    body { padding: 24px 18px 48px; }
+    h1 { font-size: 30px; }
+    .features { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<h1>ifPlayer</h1>
+<p class="tagline">A test runner for Inform 7 games. Drives <code>glulxe</code> over stdin/stdout, captures every turn, and renders the run as a single-page HTML report you can drill into.</p>
+
+<h2>Demo reports</h2>
+<ul class="demo-grid">
+  <li>
+    <a href="demo/cloak.html">
+      <h3>Cloak of Darkness</h3>
+      <span class="meta">5 turns · <span class="pass">WALKTHROUGH</span> · score 2/2 · 9/9 ✓</span>
+    </a>
+  </li>
+  <li>
+    <a href="demo/zork1.html">
+      <h3>Zork I — full walkthrough</h3>
+      <span class="meta">437 turns · <span class="pass">WALKTHROUGH</span> · score 350/350 · 24/24 ✓</span>
+    </a>
+  </li>
+</ul>
+
+<h2>What's in a report</h2>
+<ul class="features">
+  <li><strong>Setup section</strong><span>Shared <code>.before</code> files run before the test body and surface as a collapsed bar showing where setup landed the player ("ends in Cellar · T:27 · score 24"). Click to expand the full setup transcript.</span></li>
+  <li><strong>Per-turn rows</strong><span>One compact row per command — turn, input, current room, score, score delta, outcome marker, assertion summary. Click any row to reveal the game's response.</span></li>
+  <li><strong>Match highlights</strong><span>Each <code>?</code> assertion has a "show" toggle that highlights the satisfying span(s) directly inside the response above. Radio-style: one assertion's matches at a time per turn.</span></li>
+  <li><strong>Word-level drift diff</strong><span>Recorded snapshot vs observed output, compared by words (whitespace-only differences ignored). Real changes render red/green inline like a code diff.</span></li>
+  <li><strong>Room identity</strong><span>Same physical room visited many times keeps the same fingerprint, even when its description embeds dynamic state (open trap door, treasure case contents). Hover any room name to see the fingerprint hash.</span></li>
+  <li><strong>Win classification</strong><span>Tests are auto-classified as <strong>walkthrough</strong> (reaches max score / win banner) or <strong>scenario</strong> (any other completion).</span></li>
+</ul>
+
+<h2>Test format</h2>
+<p>A <code>.test</code> file interlaces input commands with assertions:</p>
+<pre>test: cloak-walkthrough
+game: ../cloak-inform7.ulx
+seed: 42
+---
+
+> west
+? Cloakroom
+? hooks
+
+> hang cloak on hook
+? velvet cloak
+? /score has (just )?gone up/
+
+> read message
+? *** The End ***
+</pre>
+
+<p>For longer tests, share setup via <code>.before</code> files:</p>
+<pre>test: zork1-troll-fight
+game: ../../i7/zork1/zork1.ulx
+seed: 26
+before: zork1-cellar-nav.before
+---
+
+> n
+? Troll Room
+> kill troll with sword
+...
+</pre>
+
+<h2>CLI</h2>
+<pre>ifplayer play &lt;game.ulx&gt;                  REPL against the game
+ifplayer run &lt;test.test&gt;                  run one test
+ifplayer test &lt;tests..&gt; --html-report R   run many, write report
+ifplayer new &lt;name&gt; --game G              stub a new test
+ifplayer update &lt;test&gt;                    rewrite test with captured output
+</pre>
+
+<div class="footer">
+  Source: <a href="https://github.com/johnesco/ifplayer">github.com/johnesco/ifplayer</a> · MIT licensed
+</div>
+
+</body>
+</html>

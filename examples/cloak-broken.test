@@ -1,0 +1,60 @@
+test: cloak-broken
+game: ../../i7/cloak-inform7/cloak-inform7.ulx
+seed: 42
+---
+
+# Cloak of Darkness — the canonical IF demo. Foyer → Cloakroom (hang
+# cloak) → Foyer → Bar → read message. Wins with score 2/2.
+
+> west
+
+  Cloakroom
+  The walls of this small room were clearly once lined with hooks,
+  though now only one remains. The exit is a door to the east.
+
+? Cloakroom
+? gargoyles
+
+
+> hang cloak on hook
+
+  (first taking it off)
+  You put the velvet cloak on the small brass hook.
+
+  [Your score has just gone up by one point.]
+
+? velvet cloak
+? /score has (just )?gone up/
+
+
+> east
+
+  Foyer of the Opera House
+  You are standing in a spacious hall, splendidly decorated in red
+  and gold, with glittering chandeliers overhead. The entrance from
+  the street is to the north, and there are doorways south and west.
+
+? Foyer
+
+
+> south
+
+  Foyer Bar
+  The bar, much rougher than you'd have guessed after the opulence
+  of the foyer to the north, is completely empty. There seems to be
+  some sort of message scrawled in the sawdust on the floor.
+
+? Foyer Bar
+? message scrawled
+
+
+> read message
+
+  The message, neatly marked in the sawdust, reads...
+
+      *** The End ***
+
+  In that game you scored 2 out of a possible 2, in 5 turns.
+
+? *** The End ***
+? scored 2 out of a possible 2

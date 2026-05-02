@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ifplayer"
+version = "0.1.0"
+description = "Inform 7 test runner. Drives glulxe via subprocess and reports pass/fail with collapsible drill-in detail."
+requires-python = ">=3.10"
+dependencies = [
+    "click>=8.1",
+    "rich>=13.7",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-timeout>=2.3"]
+
+[project.scripts]
+ifplayer = "ifplayer.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["ifplayer*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+timeout = 30

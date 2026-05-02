@@ -1,0 +1,26 @@
+# Build / install artefacts
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+
+# Test runtime artefacts
+.pytest_cache/
+
+# Local virtualenvs
+.venv/
+venv/
+
+# Local preview/playground (not for the public repo)
+_preview/
+
+# Ad-hoc transcripts captured by `ifplayer play /save`
+transcripts/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+report.html

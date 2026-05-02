@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>ifPlayer · cloak-walkthrough</title><style>
+:root {
+  --bg: #fafafa;
+  --fg: #1a1a1a;
+  --muted: #6b6b6b;
+  --pass: #1a7f37;
+  --pass-bg: #dcffe4;
+  --fail: #b81a3e;
+  --fail-bg: #ffd9e0;
+  --warn: #b87800;
+  --code-bg: #f1efe9;
+  --line: #d8d4cb;
+  --accent: #4a3a25;
+  --hover: #f3efe8;
+  /* Game text — what the interpreter prints. Monospace, slightly warm. */
+  --game-font: ui-monospace, "SF Mono", "Cascadia Code", "Fira Code", Consolas, monospace;
+  /* Test/UI text — labels, counts, status. Proportional. */
+  --ui-font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
+  /* Mono used inside UI for things that quote literal game/assertion text. */
+  --mono: ui-monospace, "SF Mono", Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 15px/1.5 var(--ui-font);
+  padding: 24px 32px 64px;
+  max-width: 1100px;
+}
+h1 { font-size: 22px; margin: 0 0 4px; font-weight: 600; }
+h2 {
+  font-size: 13px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--muted);
+  margin: 32px 0 10px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+h3 { font-size: 16px; margin: 0 0 4px; font-weight: 600; }
+h4 {
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--muted);
+  margin: 14px 0 6px;
+}
+h4:first-child { margin-top: 0; }
+.subtitle { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+
+/* ─── summary card ─────────────────────────────────────────────── */
+.summary {
+  display: flex; gap: 24px; flex-wrap: wrap;
+  padding: 12px 16px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.summary .item { display: flex; align-items: baseline; gap: 6px; }
+.summary .num { font-size: 22px; font-weight: 600; }
+.summary .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.summary .pass-num { color: var(--pass); }
+.summary .fail-num { color: var(--fail); }
+
+/* ─── games card ───────────────────────────────────────────────── */
+.games {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 16px;
+}
+.game-row {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 16px;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.game-row:last-child { border-bottom: none; }
+.game-name { font-weight: 600; font-family: var(--mono); }
+.game-paths { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+.game-paths .relpath { color: var(--accent); }
+.game-paths .abspath { display: block; margin-top: 2px; }
+.game-paths .seed { color: var(--warn); margin-left: 8px; }
+
+.glyph { display: inline-block; width: 16px; text-align: center; font-weight: 700; }
+.glyph.pass { color: var(--pass); }
+.glyph.fail { color: var(--fail); }
+.glyph.error { color: var(--fail); }
+.outcome-walkthrough { color: var(--pass); font-weight: 600; }
+.outcome-scenario { color: var(--muted); }
+.outcome-error { color: var(--fail); font-weight: 600; }
+
+/* ─── test list (collapsible per-test cards) ─────────────────── */
+.tests { background: transparent; border: none; }
+details.test {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin-bottom: 18px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+/* Heavy, inverted-color title bar so it's unmistakable when scrolling
+   between multiple open tests where one ends and the next begins. */
+summary.test-summary {
+  cursor: pointer;
+  padding: 18px 22px;
+  display: grid;
+  grid-template-columns: 18px 28px minmax(160px, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  user-select: none;
+  list-style: none;
+  background: #2b231a;
+  color: #fafafa;
+  border-left: 6px solid var(--pass);
+}
+details.test[data-status="fail"] summary.test-summary {
+  background: #4a1626;
+  border-left-color: var(--fail);
+}
+summary.test-summary::-webkit-details-marker { display: none; }
+summary.test-summary::before {
+  content: "▶";
+  color: rgba(255,255,255,0.55);
+  font-size: 12px;
+  transition: transform 0.15s;
+}
+details.test[open] > summary.test-summary::before { transform: rotate(90deg); }
+summary.test-summary:hover { filter: brightness(1.18); }
+summary.test-summary .glyph { font-size: 22px; }
+summary.test-summary .glyph.pass { color: #6fcf97; }
+summary.test-summary .glyph.fail { color: #ff7a91; }
+.test-name {
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 0.2px;
+}
+.test-summary-meta {
+  color: rgba(255,255,255,0.78);
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+}
+.test-summary-meta .outcome-walkthrough { color: #6fcf97; font-weight: 600; }
+.test-summary-meta .outcome-scenario { color: rgba(255,255,255,0.72); }
+.test-summary-meta .outcome-error { color: #ff7a91; font-weight: 600; }
+
+.test-body {
+  padding: 0;
+  background: white;
+}
+
+/* ─── setup section (.before turns) ──────────────────────────── */
+details.setup {
+  background: #f7f3ea;
+  border-bottom: 1px solid var(--line);
+}
+summary.setup-summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 10px 22px;
+  font-size: 12.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 600;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.setup-end-state {
+  margin-left: auto;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  color: var(--muted);
+  font-family: var(--ui-font);
+  font-size: 12.5px;
+}
+.setup-end-room {
+  color: #6b3a8a;
+  font-family: var(--mono);
+}
+summary.setup-summary::-webkit-details-marker { display: none; }
+summary.setup-summary::before {
+  content: "▶";
+  font-size: 9px;
+  color: var(--muted);
+  transition: transform 0.15s;
+}
+details.setup[open] > summary.setup-summary::before { transform: rotate(90deg); }
+summary.setup-summary:hover { background: var(--hover); }
+.setup-count { color: var(--accent); }
+.setup-files { color: var(--muted); font-weight: 400; text-transform: none; letter-spacing: 0; font-family: var(--mono); }
+ul.setup-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: #fdfbf6;
+  border-top: 1px dashed var(--line);
+}
+li.setup-step {
+  display: grid;
+  grid-template-columns: 28px 52px 1fr;
+  gap: 10px;
+  padding: 4px 22px 4px 28px;
+  font-family: var(--ui-font);
+  font-size: 13px;
+  color: var(--muted);
+  border-bottom: 1px solid #ebe6d9;
+}
+li.setup-step:last-child { border-bottom: none; }
+li.setup-step .setup-glyph { color: var(--muted); font-family: var(--mono); }
+li.setup-step .setup-tcount { color: var(--muted); font-variant-numeric: tabular-nums; }
+li.setup-step .setup-cmd { color: var(--accent); font-family: var(--mono); }
+li.setup-step .setup-room {
+  color: #6b3a8a;
+  font-family: var(--mono);
+  font-size: 12px;
+  margin-left: 8px;
+  opacity: 0.7;
+}
+
+/* ─── transcript (per-turn collapsible rows) ─────────────────── */
+.transcript {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: white;
+  border: none;
+  border-radius: 0;
+}
+li.turn {
+  border-bottom: 1px solid var(--line);
+}
+li.turn:last-child { border-bottom: none; }
+details.turn-detail[data-status="fail"] {
+  background: var(--fail-bg);
+}
+/* Fixed pixel columns so room / score / turn counter / asserts align
+   vertically down the whole transcript instead of sliding with content.
+   The row is UI text (sans), but the > command and @ room are quoted
+   literal strings so they stay in mono. */
+summary.turn-row {
+  cursor: pointer;
+  display: grid;
+  /* Trailing columns are fixed-width so the layout stays stable whether
+     a turn has assertions or not — no horizontal shift between rows. */
+  grid-template-columns:
+    14px              /* disclosure ▶ */
+    52px              /* T:N         */
+    minmax(140px, auto) /* > command */
+    1fr               /* Room name (right-aligned, hugs score column) */
+    78px              /* score N     */
+    40px              /* +N delta    */
+    50px              /* WIN/LOSE    */
+    100px;            /* asserts     */
+  gap: 12px;
+  padding: 10px 16px;
+  align-items: center;
+  font-family: var(--ui-font);
+  font-size: 14px;
+  /* Subtle warm tint distinguishes each turn header from the white
+     turn-body (and the bg-coloured extras section) when scrolling. */
+  background: #f1ebdb;
+  border-top: 1px solid #ddd5c0;
+  user-select: none;
+  list-style: none;
+}
+li.turn:first-child summary.turn-row { border-top: none; }
+details.turn-detail[data-status="fail"] summary.turn-row {
+  background: var(--fail-bg);
+  border-top-color: #f0aab8;
+}
+summary.turn-row::-webkit-details-marker { display: none; }
+summary.turn-row::before {
+  content: "▶";
+  color: var(--muted);
+  font-size: 9px;
+  transition: transform 0.1s;
+}
+details.turn-detail[open] > summary.turn-row::before { transform: rotate(90deg); }
+summary.turn-row:hover { background: var(--hover); }
+details.turn-detail[data-status="fail"] summary.turn-row:hover { background: #ffc6d3; }
+.turn-room, .turn-cmd { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.turn-cmd {
+  font-weight: 600;
+  color: var(--accent);
+  font-family: var(--mono);  /* literal player input */
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.turn-room {
+  color: #6b3a8a;
+  font-family: var(--mono);  /* literal room name from game */
+  text-align: right;          /* hug the score column on the right */
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.room-fp {
+  border-bottom: 1px dotted currentColor;
+  cursor: help;
+}
+.turn-score { color: var(--warn); font-variant-numeric: tabular-nums; }
+.turn-tcount { color: var(--muted); font-variant-numeric: tabular-nums; }
+.turn-delta { color: var(--pass); font-weight: 600; font-variant-numeric: tabular-nums; }
+.turn-delta.neg { color: var(--fail); }
+.turn-outcome { font-weight: 700; }
+.turn-outcome.win { color: var(--pass); }
+.turn-outcome.lose { color: var(--fail); }
+.turn-outcome.end { color: var(--muted); }
+.turn-asserts {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.turn-asserts .pass { color: var(--pass); font-weight: 600; }
+.turn-asserts .fail { color: var(--fail); font-weight: 600; }
+.turn-asserts .pass + .fail { margin-left: 8px; }
+
+/* ─── transcript-style response ──────────────────────────────── */
+.turn-body { background: white; }
+pre.turn-response, pre.opening-text {
+  margin: 0;
+  padding: 16px 24px 16px 38px;
+  background: white;
+  font-family: var(--game-font);
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: #2a2620;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  border-top: 1px dashed var(--line);
+}
+pre.turn-response .room-title,
+pre.opening-text .room-title {
+  font-weight: 700;
+  color: var(--accent);
+  display: inline-block;
+}
+li.opening { list-style: none; }
+li.opening pre.opening-text { border-top: none; padding-left: 24px; }
+
+/* ─── per-turn extras (assertions, drift, metadata) ──────────── */
+details.turn-extras {
+  border-top: 1px dashed var(--line);
+}
+summary.turn-extras-summary {
+  cursor: pointer;
+  padding: 8px 16px 8px 38px;
+  font-size: 13px;
+  color: var(--muted);
+  user-select: none;
+  list-style: none;
+  font-family: var(--ui-font);
+}
+summary.turn-extras-summary::-webkit-details-marker { display: none; }
+summary.turn-extras-summary::before {
+  content: "▸ ";
+  font-size: 10px;
+}
+details.turn-extras[open] > summary.turn-extras-summary::before { content: "▾ "; }
+summary.turn-extras-summary:hover { background: var(--hover); }
+.turn-extras-body {
+  padding: 10px 24px 14px 38px;
+  background: var(--bg);
+}
+.turn-extras-body h4:first-child { margin-top: 0; }
+
+ul.assertions { margin: 0; padding-left: 4px; list-style: none; }
+ul.assertions li {
+  padding: 5px 0;
+  font-family: var(--mono);  /* asserts quote literal substrings, keep mono */
+  font-size: 13px;
+  position: relative;
+  padding-left: 20px;
+}
+ul.assertions li.pass::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--pass);
+  font-weight: 700;
+}
+ul.assertions li.fail::before {
+  content: "✗";
+  position: absolute;
+  left: 0;
+  color: var(--fail);
+  font-weight: 700;
+}
+ul.assertions li .detail {
+  display: block;
+  color: var(--fail);
+  margin-top: 2px;
+  font-size: 12px;
+}
+
+/* Inline match highlight: clicking "show" on an assertion highlights
+   the satisfying span(s) in the game-output block above. Click the same
+   button again to clear; click a different button in the same turn to
+   swap (radio-style). Highlight spans start invisible and only show
+   when activated, so plain reading of the transcript is uncluttered. */
+button.match-toggle {
+  margin-left: 8px;
+  padding: 1px 8px;
+  font-family: var(--ui-font);
+  font-size: 11px;
+  background: white;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  cursor: pointer;
+  vertical-align: 1px;
+}
+button.match-toggle:hover { color: var(--accent); border-color: var(--accent); }
+button.match-toggle.active {
+  background: #ffe88a;
+  color: #5a4400;
+  border-color: #d9b840;
+  font-weight: 700;
+}
+li.fail button.match-toggle.active {
+  background: #ffd9e0;
+  color: var(--fail);
+  border-color: var(--fail);
+}
+.hl {
+  /* baseline: no visual treatment — only highlight when activated */
+}
+.hl.hl-active {
+  background: #ffe88a;
+  color: #5a4400;
+  padding: 1px 2px;
+  border-radius: 2px;
+  font-weight: 700;
+  box-shadow: 0 0 0 1px #d9b840;
+}
+li.fail.matches-active ~ pre.turn-response .hl.hl-active,
+.turn-detail[data-status="fail"] .hl.hl-active.hl-fail {
+  background: #ffd9e0;
+  color: var(--fail);
+  box-shadow: 0 0 0 1px var(--fail);
+}
+
+/* ─── drift diff ──────────────────────────────────────────────── */
+.drift-diff {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 12px 14px;
+  font-family: var(--game-font);  /* it's quoting game text */
+  font-size: 13px;
+  line-height: 1.7;
+}
+.drift-diff .equal { color: var(--muted); }
+.drift-diff .del {
+  background: var(--fail-bg);
+  color: var(--fail);
+  text-decoration: line-through;
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+.drift-diff .ins {
+  background: var(--pass-bg);
+  color: var(--pass);
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+.drift-legend {
+  font-size: 11px; color: var(--muted);
+  margin: 4px 0 6px;
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.drift-legend .swatch { display: inline-block; padding: 0 4px; border-radius: 2px; margin-right: 4px; }
+.drift-legend .swatch.del { background: var(--fail-bg); color: var(--fail); text-decoration: line-through; }
+.drift-legend .swatch.ins { background: var(--pass-bg); color: var(--pass); }
+
+.error {
+  background: var(--fail-bg);
+  border: 1px solid var(--fail);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--fail);
+}
+.metadata {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 16px;
+  font-size: 12.5px;
+  font-family: var(--mono);
+}
+.metadata dt { color: var(--muted); }
+.metadata dd { margin: 0; }
+</style></head><body><h1>ifPlayer · cloak-walkthrough</h1><div class="subtitle">generated 2026-05-01 19:43:23 · 1 test · 55ms</div><div class="summary"><div class="item"><span class="num pass-num">1</span><span class="label">passed</span></div><div class="item"><span class="num fail-num">0</span><span class="label">failed</span></div><div class="item"><span class="num">1</span><span class="label">walkthroughs</span></div><div class="item"><span class="num">5</span><span class="label">turns</span></div><div class="item"><span class="num">9/9</span><span class="label">assertions</span></div></div><h2>Games under test</h2><div class="games"><div class="game-row"><div class="game-name">cloak-inform7.ulx</div><div class="game-paths"><span class="relpath">../../i7/cloak-inform7/cloak-inform7.ulx</span><span class="seed">seed: 42</span><span class="abspath">resolved: C:/code/text-games/i7/cloak-inform7/cloak-inform7.ulx</span></div></div></div><h2>Tests</h2><div class="tests"><details class="test" data-status="pass"><summary class="test-summary"><span class="glyph pass">✓</span><span class="test-name">cloak-walkthrough</span><span class="test-summary-meta">5 turns · <span class="outcome-walkthrough">WALKTHROUGH</span> · score 2 · 9/9 ✓ · 55ms</span></summary><div class="test-body"><ul class="transcript"><li class="opening"><pre class="opening-text">
+
+
+
+
+
+Hurrying through the rainswept November night, you&#x27;re glad to see the bright lights of the Opera House. It&#x27;s surprising that there aren&#x27;t more people about but, hey, what do you expect in a cheap demo game...?
+
+Cloak of Darkness
+A basic IF demonstration by Roger Firth and Graham Nelson
+Release 1 / Serial number 260322 / Inform 7 v10.1.2 / D
+
+Foyer of the Opera House
+You are standing in a spacious hall, splendidly decorated in red and gold, with glittering chandeliers overhead. The entrance from the street is to the north, and there are doorways south and west.
+</pre></li></ul><ul class="transcript"><li class="turn"><details class="turn-detail" data-status="pass"><summary class="turn-row"><span class="turn-tcount">T:1</span><span class="turn-cmd">&gt; west</span><span class="turn-room"><span class="room-fp" title="fingerprint: 9768d98d4640">Cloakroom</span></span><span class="turn-score"></span><span class="turn-delta"></span><span class="turn-outcome "></span><span class="turn-asserts"><span class="pass">✓ 2/2</span></span></summary><div class="turn-body"><pre class="turn-response">
+<strong class="room-title"><span class="hl" data-asserts="0">Cloakroom</span></strong>
+The walls of this small room were clearly once lined with <span class="hl" data-asserts="1">hooks</span>, though now only one remains. The exit is a door to the east.
+</pre><details class="turn-extras"><summary class="turn-extras-summary">2 checks ✓  ·  3ms</summary><div class="turn-extras-body"><h4>Checks</h4><ul class="assertions"><li class="pass">? Cloakroom<button type="button" class="match-toggle" data-assertion-idx="0">show</button></li><li class="pass">? hooks<button type="button" class="match-toggle" data-assertion-idx="1">show</button></li></ul></div></details></div></details></li><li class="turn"><details class="turn-detail" data-status="pass"><summary class="turn-row"><span class="turn-tcount">T:2</span><span class="turn-cmd">&gt; hang cloak on hook</span><span class="turn-room"><span class="room-fp" title="fingerprint: 9768d98d4640">Cloakroom</span></span><span class="turn-score">score 1</span><span class="turn-delta">+1</span><span class="turn-outcome "></span><span class="turn-asserts"><span class="pass">✓ 2/2</span></span></summary><div class="turn-body"><pre class="turn-response">(first taking it off)
+You put the <span class="hl" data-asserts="0">velvet cloak</span> on the small brass hook.
+
+[Your <span class="hl" data-asserts="1">score has just gone up</span> by one point.]
+</pre><details class="turn-extras"><summary class="turn-extras-summary">2 checks ✓  ·  4ms</summary><div class="turn-extras-body"><h4>Checks</h4><ul class="assertions"><li class="pass">? velvet cloak<button type="button" class="match-toggle" data-assertion-idx="0">show</button></li><li class="pass">? /score has (just )?gone up/<button type="button" class="match-toggle" data-assertion-idx="1">show</button></li></ul></div></details></div></details></li><li class="turn"><details class="turn-detail" data-status="pass"><summary class="turn-row"><span class="turn-tcount">T:3</span><span class="turn-cmd">&gt; east</span><span class="turn-room"><span class="room-fp" title="fingerprint: 85d53a9386c3">Foyer of the Opera House</span></span><span class="turn-score">score 1</span><span class="turn-delta"></span><span class="turn-outcome "></span><span class="turn-asserts"><span class="pass">✓ 1/1</span></span></summary><div class="turn-body"><pre class="turn-response">
+<strong class="room-title"><span class="hl" data-asserts="0">Foyer</span></strong><strong class="room-title"> of the Opera House</strong>
+You are standing in a spacious hall, splendidly decorated in red and gold, with glittering chandeliers overhead. The entrance from the street is to the north, and there are doorways south and west.
+</pre><details class="turn-extras"><summary class="turn-extras-summary">1 check ✓  ·  4ms</summary><div class="turn-extras-body"><h4>Checks</h4><ul class="assertions"><li class="pass">? Foyer<button type="button" class="match-toggle" data-assertion-idx="0">show</button></li></ul></div></details></div></details></li><li class="turn"><details class="turn-detail" data-status="pass"><summary class="turn-row"><span class="turn-tcount">T:4</span><span class="turn-cmd">&gt; south</span><span class="turn-room"><span class="room-fp" title="fingerprint: 32b1ffe2073a">Foyer Bar</span></span><span class="turn-score">score 1</span><span class="turn-delta"></span><span class="turn-outcome "></span><span class="turn-asserts"><span class="pass">✓ 2/2</span></span></summary><div class="turn-body"><pre class="turn-response">
+<strong class="room-title"><span class="hl" data-asserts="0">Foyer Bar</span></strong>
+The bar, much rougher than you&#x27;d have guessed after the opulence of the foyer to the north, is completely empty. There seems to be some sort of <span class="hl" data-asserts="1">message scrawled</span> in the sawdust on the floor.
+</pre><details class="turn-extras"><summary class="turn-extras-summary">2 checks ✓  ·  3ms</summary><div class="turn-extras-body"><h4>Checks</h4><ul class="assertions"><li class="pass">? Foyer Bar<button type="button" class="match-toggle" data-assertion-idx="0">show</button></li><li class="pass">? message scrawled<button type="button" class="match-toggle" data-assertion-idx="1">show</button></li></ul></div></details></div></details></li><li class="turn"><details class="turn-detail" data-status="pass"><summary class="turn-row"><span class="turn-tcount">T:5</span><span class="turn-cmd">&gt; read message</span><span class="turn-room"><span class="room-fp" title="fingerprint: 32b1ffe2073a">Foyer Bar</span></span><span class="turn-score">score 2</span><span class="turn-delta"></span><span class="turn-outcome win">WIN</span><span class="turn-asserts"><span class="pass">✓ 2/2</span></span></summary><div class="turn-body"><pre class="turn-response">The message, neatly marked in the sawdust, reads...
+
+
+
+    <span class="hl" data-asserts="0">*** The End ***</span>
+
+
+In that game you <span class="hl" data-asserts="1">scored 2 out of a possible 2</span>, in 5 turns.
+
+
+Would you like to RESTART, RESTORE a saved game, QUIT or UNDO the last command?</pre><details class="turn-extras"><summary class="turn-extras-summary">2 checks ✓  ·  <span style="color:var(--warn);">drift</span>  ·  2ms</summary><div class="turn-extras-body"><h4>Checks</h4><ul class="assertions"><li class="pass">? *** The End ***<button type="button" class="match-toggle" data-assertion-idx="0">show</button></li><li class="pass">? scored 2 out of a possible 2<button type="button" class="match-toggle" data-assertion-idx="1">show</button></li></ul><h4>Drift <span style="font-weight:400;color:var(--muted);">— recorded vs observed, word level</span></h4><div class="drift-legend"><span><span class="swatch del">removed</span>in recorded snapshot only</span><span><span class="swatch ins">added</span>in observed output only</span><span style="color:var(--muted);">unchanged words shown in grey</span></div><div class="drift-diff"><span class="equal">The message, neatly marked in the sawdust, reads... *** The End *** In that game you scored 2 out of a possible 2, in 5 turns.</span> <span class="ins">Would you like to RESTART, RESTORE a saved game, QUIT or UNDO the last command?</span></div></div></details></div></details></li></ul></div></details></div><script>
+document.addEventListener('click', function (e) {
+  var btn = e.target.closest && e.target.closest('.match-toggle');
+  if (!btn) return;
+  var turn = btn.closest('.turn-detail');
+  if (!turn) return;
+  var idx = btn.getAttribute('data-assertion-idx');
+  var wasActive = btn.classList.contains('active');
+  // Reset every toggle + highlight in this turn (radio-style: only one
+  // assertion's highlights visible at a time within a turn).
+  Array.prototype.forEach.call(turn.querySelectorAll('.match-toggle.active'),
+    function (b) { b.classList.remove('active'); });
+  Array.prototype.forEach.call(turn.querySelectorAll('.hl.hl-active'),
+    function (s) { s.classList.remove('hl-active'); });
+  if (wasActive) return;  // re-click on the active toggle deselects → done
+  btn.classList.add('active');
+  Array.prototype.forEach.call(turn.querySelectorAll('.hl'), function (span) {
+    var ids = (span.getAttribute('data-asserts') || '').split(' ');
+    if (ids.indexOf(idx) >= 0) span.classList.add('hl-active');
+  });
+});
+</script></body></html>
