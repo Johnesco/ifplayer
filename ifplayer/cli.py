@@ -18,6 +18,7 @@ import click
 from rich.console import Console
 
 from . import display as display_mod
+from . import json_export as json_export_mod
 from . import repl as repl_mod
 from . import report as report_mod
 from . import runner, test_format
@@ -70,6 +71,9 @@ def play(game: Path, seed: Optional[str]) -> None:
 @click.option("-q", "--quiet", is_flag=True, help="Quiet — one line per test.")
 @click.option("--html-report", "html_report", type=click.Path(dir_okay=False, path_type=Path),
               default=None, help="Write a self-contained HTML report to PATH.")
+@click.option("--json-report", "json_report", type=click.Path(dir_okay=False, path_type=Path),
+              default=None, help="Write test-results.json (IF Hub format).")
+@click.option("--story-id", "story_id", type=str, default="", help="Story ID for JSON report.")
 def run(
     test_path: Path,
     game_override: Optional[Path],
@@ -77,6 +81,8 @@ def run(
     verbose: int,
     quiet: bool,
     html_report: Optional[Path],
+    json_report: Optional[Path],
+    story_id: str,
 ) -> None:
     """Run a single .test file."""
     console = _make_console()
@@ -91,6 +97,9 @@ def run(
     if html_report:
         report_mod.write_report([result], html_report, title=f"ifPlayer · {test.header.test or test_path.name}")
         console.print(f"[dim]html report:[/dim] {html_report}")
+    if json_report:
+        json_export_mod.write_json([result], json_report, story_id=story_id)
+        console.print(f"[dim]json report:[/dim] {json_report}")
     sys.exit(0 if result.status == "pass" else 1)
 
 
@@ -106,6 +115,9 @@ def run(
 @click.option("--stop-on-fail", is_flag=True, help="Halt on first failing test.")
 @click.option("--html-report", "html_report", type=click.Path(dir_okay=False, path_type=Path),
               default=None, help="Write a self-contained HTML report to PATH.")
+@click.option("--json-report", "json_report", type=click.Path(dir_okay=False, path_type=Path),
+              default=None, help="Write test-results.json (IF Hub format).")
+@click.option("--story-id", "story_id", type=str, default="", help="Story ID for JSON report.")
 def test_cmd(
     test_paths: tuple[Path, ...],
     game_override: Optional[Path],
@@ -114,6 +126,8 @@ def test_cmd(
     quiet: bool,
     stop_on_fail: bool,
     html_report: Optional[Path],
+    json_report: Optional[Path],
+    story_id: str,
 ) -> None:
     """Run many .test files and print a suite summary."""
     console = _make_console()
@@ -134,6 +148,9 @@ def test_cmd(
     if html_report:
         report_mod.write_report(results, html_report)
         console.print(f"[dim]html report:[/dim] {html_report}")
+    if json_report:
+        json_export_mod.write_json(results, json_report, story_id=story_id)
+        console.print(f"[dim]json report:[/dim] {json_report}")
     failed_any = any(r.status == "fail" for r in results)
     sys.exit(1 if failed_any else 0)
 
